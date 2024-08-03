@@ -4,19 +4,22 @@ import (
 	"context"
 	"time"
 
+	"github.com/pavr1/people/src/config"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type RepoHandler struct {
+	log    *log.Entry
+	config *config.Config
 	client *mongo.Client
 }
 
-func NewRepoHandler() (*RepoHandler, error) {
+func NewRepoHandler(log *log.Entry, config *config.Config) (*RepoHandler, error) {
 	log.Info("Connecting to MongoDB...")
 
-	client, err := connectToMongoDB()
+	client, err := connectToMongoDB(config)
 	if err != nil {
 		log.WithField("error", err).Error("Failed to connect to MongoDB")
 
@@ -24,12 +27,13 @@ func NewRepoHandler() (*RepoHandler, error) {
 	}
 
 	return &RepoHandler{
+		log:    log,
 		client: client,
 	}, nil
 }
 
-func connectToMongoDB() (*mongo.Client, error) {
-	uri := "mongodb://localhost:27017" // Replace with your MongoDB connection URI
+func connectToMongoDB(config *config.Config) (*mongo.Client, error) {
+	uri := config.MongoDB.Uri
 
 	log.WithField("uri", uri).Info("Connecting to MongoDB...")
 

@@ -4,22 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
+	"github.com/pavr1/people/src/config"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
-
-type Config struct {
-	Server struct {
-		Port int `mapstructure:"port"`
-	} `mapstructure:"server"`
-}
 
 func main() {
 	setupLogger()
-	config, err := readConfig()
+	config, err := config.NewConfig()
 	if err != nil {
-		log.WithField("error", err).Error("Failed to read config")
 		return
 	}
 
@@ -37,32 +29,8 @@ func main() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), nil))
 }
 
-func readConfig() (*Config, error) {
-	// Set the configuration file name and type
-	viper.SetConfigName("config")
-	viper.SetConfigType("json")
-
-	// Set the configuration file path
-	viper.AddConfigPath(".")
-
-	// Read the configuration file
-	err := viper.ReadInConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	// Unmarshal the configuration into a struct
-	var config Config
-	err = viper.Unmarshal(&config)
-	if err != nil {
-		return nil, err
-	}
-
-	return &config, nil
-}
-
 func setupLogger() {
-	log.SetFormatter(&logrus.TextFormatter{
+	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
 	})
 }

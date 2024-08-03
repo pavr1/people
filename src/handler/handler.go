@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	repohandler "github.com/pavr1/people/repoHandler"
+	repohandler "github.com/pavr1/people/src/repoHandler"
 )
 
 type HttpHandler struct {
@@ -14,11 +14,6 @@ func NewHttpHandler(repo *repohandler.RepoHandler) *HttpHandler {
 	return &HttpHandler{
 		repoHandler: repo,
 	}
-}
-
-func (h *HttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hello, world!"))
 }
 
 func (h *HttpHandler) GetPeople(w http.ResponseWriter, r *http.Request) {
