@@ -9,7 +9,6 @@ import (
 
 	repohandler "github.com/pavr1/people/handlers/repo"
 	"github.com/pavr1/people/models"
-	"github.com/pavr1/people/models/request"
 )
 
 type HttpHandler struct {
@@ -149,26 +148,19 @@ func (h *HttpHandler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
 
 func (h *HttpHandler) DeletePerson(w http.ResponseWriter, r *http.Request) {
 	log.Info("DeletePerson")
-	// Read the request body
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.WithError(err).Error("Failed to read request body")
+	query := r.URL.Query()
 
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// Retrieve the ID from the query parameters
+	id := query.Get("id")
 
-	idParam := request.IDParam{}
-
-	err = json.Unmarshal(body, &idParam)
-	if err != nil {
-		log.WithError(err).Error("Failed to unmarshal request body")
-
+	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("ID is required"))
+
 		return
 	}
 
-	err = h.repo.DeletePerson(idParam.ID)
+	err := h.repo.DeletePerson(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

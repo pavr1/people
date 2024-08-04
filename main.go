@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/pavr1/people/config"
 	_http "github.com/pavr1/people/handlers/http"
 	"github.com/pavr1/people/handlers/repo"
@@ -11,6 +12,8 @@ import (
 )
 
 func main() {
+	router := mux.NewRouter()
+
 	log := setupLogger()
 	config, err := config.NewConfig()
 	if err != nil {
@@ -30,15 +33,15 @@ func main() {
 	// 	log.Info("*")
 	// })
 
-	http.HandleFunc("/person/list", httpHandler.GetPersonList)
-	http.HandleFunc("/person/create", httpHandler.CreatePerson)
-	http.HandleFunc("/person/update", httpHandler.UpdatePerson)
-	http.HandleFunc("/person/delete", httpHandler.DeletePerson)
-	http.HandleFunc("/person/:id", httpHandler.GetPerson)
+	router.HandleFunc("/person/list", httpHandler.GetPersonList).Methods("GET")
+	router.HandleFunc("/person/create", httpHandler.CreatePerson).Methods("POST")
+	router.HandleFunc("/person/update", httpHandler.UpdatePerson).Methods("PUT")
+	router.HandleFunc("/person/delete", httpHandler.DeletePerson).Methods("DELETE")
+	router.HandleFunc("/person/:id", httpHandler.GetPerson).Methods("GET")
 
 	log.WithField("port", config.Server.Port).Info("Starting Server...")
 	// Start the HTTP server
-	log.Error(http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), nil))
+	log.Error(http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), router))
 }
 
 func setupLogger() *log.Entry {
