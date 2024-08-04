@@ -2,10 +2,13 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/pavr1/people/config"
+	"github.com/pavr1/people/models"
 	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -58,4 +61,131 @@ func connectToMongoDB(config *config.Config) (*mongo.Client, error) {
 	log.Println("Connected to MongoDB")
 
 	return client, nil
+}
+
+func (r *RepoHandler) GetPersonList() ([]models.Person, error) {
+	people := []models.Person{}
+
+	// Get a handle to the collection
+	collection := r.client.Database(r.Config.MongoDB.Database).Collection(r.Config.MongoDB.Collection)
+
+	// Find all documents in the collection
+	cur, err := collection.Find(context.Background(), bson.D{})
+	if err != nil {
+		log.WithError(err).Fatal("Failed to find documents in MongoDB")
+
+		return nil, err
+	}
+
+	defer cur.Close(context.Background())
+
+	// Iterate over the documents and print their contents
+	for cur.Next(context.Background()) {
+		var doc bson.M
+		err := cur.Decode(&doc)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		people = append(people, models.Person{
+			ID:       doc["_id"].(string),
+			Name:     doc["name"].(string),
+			LastName: doc["lastName"].(string),
+			Age:      doc["age"].(int),
+		})
+	}
+
+	if err := cur.Err(); err != nil {
+		log.WithError(err).Fatal("Failed to iterate over documents in MongoDB")
+
+		return nil, err
+	}
+
+	return people, nil
+}
+
+func (r *RepoHandler) GetPerson(id string) (*models.Person, error) {
+	// Get the database and collection
+	db := r.client.Database(r.Config.MongoDB.Database)
+	collection := db.Collection(r.Config.MongoDB.Collection)
+
+	// Find the document by ID
+	filter := bson.M{"_id": id}
+	var person models.Person
+	err := collection.FindOne(context.Background(), filter).Decode(&person)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to find document in MongoDB")
+
+		return nil, err
+	}
+
+	return &person, nil
+}
+
+func (r *RepoHandler) CreatePerson(person *models.Person) error {
+	person, err := r.GetPerson(person.ID)
+	if err != nil {
+		//will need to check for not found
+		log.WithError(err).Fatal("Failed to get person from MongoDB")
+
+		return err
+	}
+
+	if person != nil {
+		log.WithField("id", person.ID).Info("Person already exists")
+
+		return fmt.Errorf("person with ID %s already exists", person.ID)
+	}
+
+	// Insert the person into the "people" collection
+	collection := r.client.Database(r.Config.MongoDB.Database).Collection(r.Config.MongoDB.Collection)
+	_, err = collection.InsertOne(context.Background(), person)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to insert person into MongoDB")
+
+		return err
+	}
+
+	log.WithField("id", person.ID).Info("Person inserted successfully")
+
+	return nil
+}
+
+func (r *RepoHandler) DeletePerson(id string) error {
+	// Get the database and collection
+	db := r.client.Database(r.Config.MongoDB.Database)
+	collection := db.Collection(r.Config.MongoDB.Collection)
+
+	// Delete the document by ID
+	filter := bson.M{"_id": id}
+	_, err := collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to delete document from MongoDB")
+
+		return err
+	}
+
+	log.WithField("id", id).Info("Person deleted successfully")
+
+	return nil
+}
+
+func (r *RepoHandler) UpdatePerson(person *models.Person) error {
+	// Get the database and collection
+	db := r.client.Database(r.Config.MongoDB.Database)
+	collection := db.Collection(r.Config.MongoDB.Collection)
+
+	// Update the document by ID
+	filter := bson.M{"_id": person.ID}
+	update := bson.M{"$set": person}
+	_, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to update document in MongoDB")
+
+		return err
+	}
+
+	log.WithField("id", person.ID).Info("Person updated successfully")
+
+	return nil
 }
