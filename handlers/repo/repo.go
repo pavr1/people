@@ -1,4 +1,4 @@
-package repohandler
+package repo
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package handler
+package http
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	repohandler "github.com/pavr1/people/handlers/repo"
 	"github.com/pavr1/people/models"
-	repohandler "github.com/pavr1/people/repoHandler"
 )
 
 type HttpHandler struct {
