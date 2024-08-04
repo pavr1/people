@@ -3,6 +3,8 @@
         "port": 8080
     },
     "mongodb": {
-        "uri": "mongodb://localhost:27017"
+        "uri": "mongodb://localhost:27017",
+        "database": "person",
+        "collection": "person"
     }
 }

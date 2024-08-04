@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/pavr1/people/src/config"
+	"github.com/pavr1/people/config"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -12,7 +12,7 @@ import (
 
 type RepoHandler struct {
 	log    *log.Entry
-	config *config.Config
+	Config *config.Config
 	client *mongo.Client
 }
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/pavr1/people/src/config"
+	"github.com/pavr1/people/config"
 	log "github.com/sirupsen/logrus"
 )
 

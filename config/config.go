@@ -11,7 +11,9 @@ type Config struct {
 		Port int `mapstructure:"port"`
 	} `mapstructure:"server"`
 	MongoDB struct {
-		Uri string `mapstructure:"uri"`
+		Uri        string `mapstructure:"uri"`
+		Database   string `mapstructure:"database"`
+		Collection string `mapstructure:"collection"`
 	} `mapstructure:"mongodb"`
 }
 
