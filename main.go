@@ -26,11 +26,11 @@ func main() {
 
 	httpHandler := _http.NewHttpHandler(repoHandler)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Info("*")
-	})
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	log.Info("*")
+	// })
 
-	http.HandleFunc("/person", httpHandler.GetPersonList)
+	http.HandleFunc("/person/list", httpHandler.GetPersonList)
 	http.HandleFunc("/person/create", httpHandler.CreatePerson)
 	http.HandleFunc("/person/update", httpHandler.UpdatePerson)
 	http.HandleFunc("/person/delete", httpHandler.DeletePerson)
@@ -38,13 +38,15 @@ func main() {
 
 	log.WithField("port", config.Server.Port).Info("Starting Server...")
 	// Start the HTTP server
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), nil))
+	log.Error(http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), nil))
 }
 
 func setupLogger() *log.Entry {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
 	})
+
+	log.SetReportCaller(true)
 
 	return log.NewEntry(log.StandardLogger())
 }

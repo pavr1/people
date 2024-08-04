@@ -14,6 +14,10 @@ type Config struct {
 		Uri        string `mapstructure:"uri"`
 		Database   string `mapstructure:"database"`
 		Collection string `mapstructure:"collection"`
+		//pvillalobos add this to a secret later
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+		RolName  string `mapstructure:"role"`
 	} `mapstructure:"mongodb"`
 }
 
@@ -39,6 +43,8 @@ func NewConfig() (*Config, error) {
 		log.WithField("error", err).Error("Failed to unmarshal configuration file")
 		return nil, err
 	}
+
+	log.WithField("config", config).Info("Loaded configuration file")
 
 	return &config, nil
 }

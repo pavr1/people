@@ -23,6 +23,8 @@ func NewHttpHandler(repo *repohandler.RepoHandler) *HttpHandler {
 }
 
 func (h *HttpHandler) GetPersonList(w http.ResponseWriter, r *http.Request) {
+	log.Info("GetPersonList")
+
 	people, err := h.repo.GetPersonList()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -33,7 +35,7 @@ func (h *HttpHandler) GetPersonList(w http.ResponseWriter, r *http.Request) {
 
 	bytes, err := json.Marshal(people)
 	if err != nil {
-		log.WithError(err).Fatal("Failed to marshal person list")
+		log.WithError(err).Error("Failed to marshal person list")
 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -44,26 +46,20 @@ func (h *HttpHandler) GetPersonList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpHandler) GetPerson(w http.ResponseWriter, r *http.Request) {
-	// Read the request body
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.WithError(err).Fatal("Failed to read request body")
+	log.Info("GetPerson")
+	query := r.URL.Query()
 
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// Retrieve the ID from the query parameters
+	id := query.Get("id")
 
-	idParam := request.IDParam{}
-
-	err = json.Unmarshal(body, &idParam)
-	if err != nil {
-		log.WithError(err).Fatal("Failed to unmarshal request body")
-
+	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("ID is required"))
+
 		return
 	}
 
-	person, err := h.repo.GetPerson(idParam.ID)
+	person, err := h.repo.GetPerson(id)
 	if err != nil {
 		//will need to check for not found
 		w.WriteHeader(http.StatusInternalServerError)
@@ -74,7 +70,7 @@ func (h *HttpHandler) GetPerson(w http.ResponseWriter, r *http.Request) {
 
 	bytes, err := json.Marshal(person)
 	if err != nil {
-		log.WithError(err).Fatal("Failed to marshal person")
+		log.WithError(err).Error("Failed to marshal person")
 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -85,22 +81,23 @@ func (h *HttpHandler) GetPerson(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpHandler) CreatePerson(w http.ResponseWriter, r *http.Request) {
+	log.Info("CreatePerson")
 	// Read the request body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithError(err).Fatal("Failed to read request body")
+		log.WithError(err).Error("Failed to read request body")
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	person := models.Person{}
-
 	err = json.Unmarshal(body, &person)
 	if err != nil {
-		log.WithError(err).Fatal("Failed to unmarshal request body")
+		log.WithError(err).Error("Failed to unmarshal request body")
 
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -118,10 +115,11 @@ func (h *HttpHandler) CreatePerson(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpHandler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
+	log.Info("UpdatePerson")
 	// Read the request body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithError(err).Fatal("Failed to read request body")
+		log.WithError(err).Error("Failed to read request body")
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -131,7 +129,7 @@ func (h *HttpHandler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &person)
 	if err != nil {
-		log.WithError(err).Fatal("Failed to unmarshal request body")
+		log.WithError(err).Error("Failed to unmarshal request body")
 
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -150,10 +148,11 @@ func (h *HttpHandler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpHandler) DeletePerson(w http.ResponseWriter, r *http.Request) {
+	log.Info("DeletePerson")
 	// Read the request body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithError(err).Fatal("Failed to read request body")
+		log.WithError(err).Error("Failed to read request body")
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -163,7 +162,7 @@ func (h *HttpHandler) DeletePerson(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &idParam)
 	if err != nil {
-		log.WithError(err).Fatal("Failed to unmarshal request body")
+		log.WithError(err).Error("Failed to unmarshal request body")
 
 		w.WriteHeader(http.StatusBadRequest)
 		return

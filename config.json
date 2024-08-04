@@ -3,8 +3,11 @@
         "port": 8080
     },
     "mongodb": {
-        "uri": "mongodb://localhost:27017",
+        "uri": "mongodb://mongodb:27017/person",
         "database": "person",
-        "collection": "person"
+        "collection": "person",
+        "user": "admin",
+        "password": "password",
+        "role": "userAdminAnyDatabase"
     }
 }
