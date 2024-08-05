@@ -175,13 +175,22 @@ func (r *RepoHandler) CreatePerson(person *models.Person) error {
 }
 
 func (r *RepoHandler) DeletePerson(id string) error {
+	person, err := r.GetPerson(id)
+	if err != nil {
+		return err
+	}
+
+	if person == nil {
+		return fmt.Errorf("person with ID %s not found", id)
+	}
+
 	// Get the database and collection
 	db := r.client.Database(r.Config.MongoDB.Database)
 	collection := db.Collection(r.Config.MongoDB.Collection)
 
 	// Delete the document by ID
-	filter := bson.M{"_id": id}
-	_, err := collection.DeleteOne(context.Background(), filter)
+	filter := bson.M{"id": id}
+	_, err = collection.DeleteOne(context.Background(), filter)
 	if err != nil {
 		log.WithError(err).Error("Failed to delete document from MongoDB")
 
@@ -199,7 +208,7 @@ func (r *RepoHandler) UpdatePerson(person *models.Person) error {
 	collection := db.Collection(r.Config.MongoDB.Collection)
 
 	// Update the document by ID
-	filter := bson.M{"_id": person.ID}
+	filter := bson.M{"id": person.ID}
 	update := bson.M{"$set": person}
 	_, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {

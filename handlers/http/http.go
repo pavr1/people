@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -46,10 +47,7 @@ func (h *HttpHandler) GetPersonList(w http.ResponseWriter, r *http.Request) {
 
 func (h *HttpHandler) GetPerson(w http.ResponseWriter, r *http.Request) {
 	log.Info("GetPerson")
-	query := r.URL.Query()
-
-	// Retrieve the ID from the query parameters
-	id := query.Get("id")
+	id := r.PathValue("id")
 
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -63,6 +61,13 @@ func (h *HttpHandler) GetPerson(w http.ResponseWriter, r *http.Request) {
 		//will need to check for not found
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
+
+		return
+	}
+
+	if person == nil {
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte("Person not found"))
 
 		return
 	}
@@ -102,8 +107,13 @@ func (h *HttpHandler) CreatePerson(w http.ResponseWriter, r *http.Request) {
 
 	err = h.repo.CreatePerson(&person)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		if strings.Contains(err.Error(), "already exists") {
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte(err.Error()))
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
 
 		return
 	}
@@ -134,6 +144,32 @@ func (h *HttpHandler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if person.ID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("ID is required"))
+
+		return
+	}
+	if person.Name == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Name is required"))
+
+		return
+	}
+	if person.LastName == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("LastName is required"))
+
+		return
+	}
+
+	if person.Age == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Age is required"))
+
+		return
+	}
+
 	err = h.repo.UpdatePerson(&person)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -148,10 +184,7 @@ func (h *HttpHandler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
 
 func (h *HttpHandler) DeletePerson(w http.ResponseWriter, r *http.Request) {
 	log.Info("DeletePerson")
-	query := r.URL.Query()
-
-	// Retrieve the ID from the query parameters
-	id := query.Get("id")
+	id := r.PathValue("id")
 
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -169,5 +202,5 @@ func (h *HttpHandler) DeletePerson(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Person successfully deleted"))
+	w.Write([]byte("Person with id " + id + " successfully deleted"))
 }

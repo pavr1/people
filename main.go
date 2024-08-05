@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/pavr1/people/config"
 	_http "github.com/pavr1/people/handlers/http"
 	"github.com/pavr1/people/handlers/repo"
@@ -12,7 +11,7 @@ import (
 )
 
 func main() {
-	router := mux.NewRouter()
+	router := http.NewServeMux()
 
 	log := setupLogger()
 	config, err := config.NewConfig()
@@ -29,15 +28,15 @@ func main() {
 
 	httpHandler := _http.NewHttpHandler(repoHandler)
 
-	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	// 	log.Info("*")
-	// })
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Info("*")
+	})
 
-	router.HandleFunc("/person/list", httpHandler.GetPersonList).Methods("GET")
-	router.HandleFunc("/person/create", httpHandler.CreatePerson).Methods("POST")
-	router.HandleFunc("/person/update", httpHandler.UpdatePerson).Methods("PUT")
-	router.HandleFunc("/person/delete", httpHandler.DeletePerson).Methods("DELETE")
-	router.HandleFunc("/person/:id", httpHandler.GetPerson).Methods("GET")
+	router.HandleFunc("GET /person/list", httpHandler.GetPersonList)
+	router.HandleFunc("POST /person/create", httpHandler.CreatePerson)
+	router.HandleFunc("PUT /person/update", httpHandler.UpdatePerson)
+	router.HandleFunc("DELETE /person/delete/{id}", httpHandler.DeletePerson)
+	router.HandleFunc("GET /person/{id}", httpHandler.GetPerson)
 
 	log.WithField("port", config.Server.Port).Info("Starting Server...")
 	// Start the HTTP server
